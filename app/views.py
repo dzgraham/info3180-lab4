@@ -4,7 +4,7 @@ from flask import render_template, request, redirect, url_for, flash, session, a
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.utils import secure_filename
 from app.models import UserProfile
-from app.forms import LoginForm
+from app.forms import LoginForm, UploadForm
 
 
 ###
@@ -24,17 +24,21 @@ def about():
 
 
 @app.route('/upload', methods=['POST', 'GET'])
+@login_required
+
 def upload():
     # Instantiate your form class
-
-    # Validate file upload on submit
+    form = UploadForm()
     if form.validate_on_submit():
-        # Get file data and save to your uploads folder
-
+        file = form.file.data
+        filename = secure_filename(file.filename)
+        upload_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(upload_path)
         flash('File Saved', 'success')
-        return redirect(url_for('home')) # Update this to redirect the user to a route that displays all uploaded image files
 
-    return render_template('upload.html')
+        return redirect(url_for('upload'))
+
+    return render_template('upload.html', form=form)
 
 
 @app.route('/login', methods=['POST', 'GET'])
@@ -46,11 +50,8 @@ def login():
     if form.validate_on_submit():
         username = form.username.data
         password = form.password.data
-
-        # Query the database for the user
         user = UserProfile.query.filter_by(username=username).first()
 
-        # Check if user exists and password matches
         if user and user.check_password(password):
             login_user(user)
             flash('Successfully logged in', 'success')
