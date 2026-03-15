@@ -32,11 +32,13 @@ def get_image(filename):
     upload_folder = os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER'])
     return send_from_directory(upload_folder, filename)
 
+
 @app.route('/files')
 @login_required
 def files():
     images = get_uploaded_images()
     return render_template('files.html', images=images)
+
 
 @app.route('/about/')
 def about():
@@ -65,7 +67,7 @@ def upload():
 @app.route('/login', methods=['POST', 'GET'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('upload'))
+        return redirect(url_for('home'))
 
     form = LoginForm()
     if form.validate_on_submit():
@@ -76,10 +78,17 @@ def login():
         if user and user.check_password(password):
             login_user(user)
             flash('Successfully logged in', 'success')
-            return redirect(url_for('upload'))
+            return redirect(url_for('home'))
         else:
             flash('Invalid username or password', 'danger')
     return render_template("login.html", form=form)
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('You have logged out successfully.', 'success')
+    return redirect(url_for('home'))
 
 # user_loader callback. This callback is used to reload the user object from
 # the user ID stored in the session
