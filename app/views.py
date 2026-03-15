@@ -39,24 +39,24 @@ def upload():
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('upload'))
+
     form = LoginForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
 
-    # change this to actually validate the entire form submission
-    # and not just one field
-    if form.username.data:
-        # Get the username and password values from the form.
+        # Query the database for the user
+        user = UserProfile.query.filter_by(username=username).first()
 
-        # Using your model, query database for a user based on the username
-        # and password submitted. Remember you need to compare the password hash.
-        # You will need to import the appropriate function to do so.
-        # Then store the result of that query to a `user` variable so it can be
-        # passed to the login_user() method below.
-
-        # Gets user id, load into session
-        login_user(user)
-
-        # Remember to flash a message to the user
-        return redirect(url_for("home"))  # The user should be redirected to the upload form instead
+        # Check if user exists and password matches
+        if user and user.check_password(password):
+            login_user(user)
+            flash('Successfully logged in', 'success')
+            return redirect(url_for('upload'))
+        else:
+            flash('Invalid username or password', 'danger')
     return render_template("login.html", form=form)
 
 # user_loader callback. This callback is used to reload the user object from
