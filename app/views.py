@@ -1,12 +1,22 @@
 import os
 from app import app, db, login_manager
-from flask import render_template, request, redirect, url_for, flash, session, abort
+from flask import render_template, request, redirect, url_for, flash, session, abort, send_from_directory
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.utils import secure_filename
 from app.models import UserProfile
 from app.forms import LoginForm, UploadForm
 
 
+def get_uploaded_images():
+    images = []
+    upload_folder = os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER'])
+
+    if os.path.exists(upload_folder):
+        for file in os.listdir(upload_folder):
+            if file.lower().endswith(('.jpg', '.jpeg', '.png', '.gif')):
+                images.append(file)
+
+    return images
 ###
 # Routing for your application.
 ###
@@ -16,6 +26,17 @@ def home():
     """Render website's home page."""
     return render_template('home.html')
 
+@app.route('/uploads/<filename>')
+@login_required
+def get_image(filename):
+    upload_folder = os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER'])
+    return send_from_directory(upload_folder, filename)
+
+@app.route('/files')
+@login_required
+def files():
+    images = get_uploaded_images()
+    return render_template('files.html', images=images)
 
 @app.route('/about/')
 def about():
