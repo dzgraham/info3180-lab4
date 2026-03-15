@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block main %}
+<h1 class="page-header">View Uploaded Images</h1>
+{% include 'flash_messages.html' %}
+<div class="image-grid">
+    {% if images %}
+        {% for image in images %}
+            <div class="image-item">
+                <img src="{{ url_for('get_image', filename=image) }}" alt="{{ image }}" class="img-thumbnail">
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No images uploaded yet.</p>
+    {% endif %}
+</div>
+
+{% endblock %}
